@@ -1,4 +1,4 @@
-package com.mycompany.app;
+package com.mycompany.app.model;
 
 import java.util.Objects;
 import java.util.function.Predicate;
