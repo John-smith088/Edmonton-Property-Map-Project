@@ -83,6 +83,9 @@ public class StatisticsView {
         return statisticsPanel;
     }
 
+    // Getter for the property info area
+    public TextArea getPropertyInfoArea() {return propertyInfoArea;}
+
     public void updatePieChart(PieChart.Data... data) {
         classesPieChart.getData().clear();
         if (data.length > 0) {

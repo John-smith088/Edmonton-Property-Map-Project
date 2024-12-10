@@ -93,4 +93,16 @@ public class MapController {
             return Color.web("#800026"); // Dark Burgundy
         }
     }
+
+    public void highlightProperty(PropertyAssessment property) {
+        mapViewManager.getGraphicsOverlay().getGraphics().clear(); // Clear existing graphics
+
+        // Highlight the selected property
+        Point propertyPoint = new Point(property.getLocation().getLng(), property.getLocation().getLat(), SpatialReferences.getWgs84());
+        SimpleMarkerSymbol highlightSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.MAGENTA, 20);
+        Graphic highlightGraphic = new Graphic(propertyPoint, highlightSymbol);
+
+        mapViewManager.getGraphicsOverlay().getGraphics().add(highlightGraphic);
+        mapViewManager.getMapView().setViewpointCenterAsync(propertyPoint, 3000); // Center map on the property
+    }
 }

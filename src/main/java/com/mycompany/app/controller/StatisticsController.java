@@ -1,7 +1,10 @@
 package com.mycompany.app.controller;
 
+import com.mycompany.app.model.PropertyAssessment;
 import com.mycompany.app.model.PropertyAssessments;
 import com.mycompany.app.view.StatisticsView;
+
+import java.text.NumberFormat;
 
 public class StatisticsController {
     private final StatisticsView statisticsView;
@@ -27,5 +30,34 @@ public class StatisticsController {
                     filteredAssessments.getMedian()
             );
         }
+    }
+
+    public void displayPropertyInfo(PropertyAssessment property) {
+        if (property == null) {
+            statisticsView.getPropertyInfoArea().setText("No property information available.");
+        } else {
+            statisticsView.getPropertyInfoArea().setText(String.format(
+                    "Account Number: %s%n" +
+                            "Address: %s%n%n" +
+                            "Garage: %s%n%n" +
+                            "Assessment Value: $%s%n%n" +
+                            "Neighborhood: %s%n%n" +
+                            "Assessment Class: %s%n%n" +
+                            "Latitude: %f%n" +
+                            "Longitude: %f",
+                    property.getAccountID(),
+                    property.getAddress(),
+                    property.getGarage(),
+                    NumberFormat.getCurrencyInstance().format(property.getAssessedValue()),
+                    property.getNeighborhood().getNeighborhoodName(),
+                    property.getAssessmentClass(),
+                    property.getLocation().getLat(),
+                    property.getLocation().getLng()
+            ));
+        }
+    }
+
+    public void displayNoStatistics() {
+        statisticsView.displayNoStatistics();
     }
 }

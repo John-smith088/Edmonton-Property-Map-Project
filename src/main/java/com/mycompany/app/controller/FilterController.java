@@ -37,6 +37,39 @@ public class FilterController {
         filterPanelView.getApplyFilterButton().setOnAction(event -> applyFilter());
 
         filterPanelView.getRemoveFilterButton().setOnAction(event -> clearFilter());
+
+        // Add listener for account search button
+        filterPanelView.getAccountSearchButton().setOnAction(event -> searchByAccountNumber());
+    }
+
+    private void searchByAccountNumber() {
+        String accountNumberStr = filterPanelView.getAccountSearchInput().getText().trim();
+
+        if (accountNumberStr.isEmpty()) {
+            showAlert("Invalid Input", "Please enter an account number.");
+            return;
+        }
+
+        try {
+            int accountNumber = Integer.parseInt(accountNumberStr);
+            PropertyAssessment property = propertyAssessments.getProperties().stream()
+                    .filter(p -> p.getAccountID() == accountNumber)
+                    .findFirst()
+                    .orElse(null);
+
+            if (property == null) {
+                showAlert("No Results", "No property found with the given account number.");
+                statisticsController.displayPropertyInfo(null); // Clear property info
+            } else {
+                // Update map, statistics, and legend with the single property
+                mapController.highlightProperty(property);
+                legendController.updateLegend(new PropertyAssessments(List.of(property)));
+                statisticsController.displayNoStatistics();
+                statisticsController.displayPropertyInfo(property); // Display property info
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Invalid Input", "Account number must be a valid number.");
+        }
     }
 
     private void applyFilter() {
