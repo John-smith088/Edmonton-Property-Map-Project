@@ -28,7 +28,6 @@ public class StatisticsView {
     private void initializeStatisticsPanel() {
         // Create the label
         Label statisticsLabel = new Label("Property Overview");
-        statisticsLabel.setStyle("-fx-text-fill: #2b5b84; -fx-font-weight: bold; -fx-font-size: 16;");
 
         // Configure the property info area
         propertyInfoArea.setEditable(false);
@@ -55,6 +54,9 @@ public class StatisticsView {
         statisticsPanel.setPrefWidth(Region.USE_COMPUTED_SIZE);
         statisticsPanel.setPrefWidth(300);
         statisticsPanel.setMaxWidth(300);
+        statisticsLabel.getStyleClass().add("statistics-label");
+        statisticsPanel.getStyleClass().add("statistics-panel");
+        classesPieChart.getStyleClass().add("pie-chart");
     }
 
     public void updateStatistics(int numberOfRecords, long minValue, long maxValue, long range, double mean, long median) {

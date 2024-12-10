@@ -28,7 +28,6 @@ public class LegendView {
     private void initializeLegendPanel() {
         // Configure the legend label
         Label legendLabel = new Label("Legend");
-        legendLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16;");
 
         // Configure the center input field
         centerInputField.setPromptText("Enter new map center value");
@@ -37,11 +36,12 @@ public class LegendView {
         legendPanel.getChildren().addAll(legendLabel, legendContent, centerInputField);
         legendPanel.setPadding(new Insets(10));
         legendPanel.setAlignment(Pos.TOP_LEFT);
-        legendPanel.setStyle("-fx-background-color: #f4f4f4; -fx-border-color: #ccc; -fx-border-radius: 5; -fx-padding: 10;");
         legendPanel.setPrefWidth(300);
         legendPanel.setMaxWidth(300);
         legendPanel.setMaxHeight(Region.USE_PREF_SIZE);
         legendPanel.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        legendLabel.getStyleClass().add("legend-label");
+        legendPanel.getStyleClass().add("legend-panel");
     }
 
     /**

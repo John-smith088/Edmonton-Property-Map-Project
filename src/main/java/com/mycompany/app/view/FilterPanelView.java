@@ -42,6 +42,14 @@ public class FilterPanelView {
         filterPanel.setMaxWidth(300);
         filterPanel.setMaxHeight(Region.USE_PREF_SIZE);
         filterPanel.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        applyStyling();
+    }
+
+    private void applyStyling() {
+        filterPanel.getStyleClass().add("property-group-pane");
+        applyFilterButton.getStyleClass().add("filter-button");
+        removeFilterButton.getStyleClass().add("remove-filter-button");
+        accountSearchButton.getStyleClass().add("account-search-button");
     }
 
     private TitledPane configureGroupPane() {

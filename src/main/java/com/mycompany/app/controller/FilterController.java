@@ -2,6 +2,7 @@ package com.mycompany.app.controller;
 
 import com.mycompany.app.model.PropertyAssessment;
 import com.mycompany.app.model.PropertyAssessments;
+import com.mycompany.app.service.PropertyFilterService;
 import com.mycompany.app.view.FilterPanelView;
 import javafx.scene.control.Alert;
 
@@ -15,15 +16,17 @@ public class FilterController {
     private final MapController mapController;
     private final StatisticsController statisticsController;
     private final LegendController legendController;
+    private final PropertyFilterService propertyFilterService;
 
     public FilterController(FilterPanelView filterPanelView, PropertyAssessments propertyAssessments,
                             MapController mapController, StatisticsController statisticsController,
-                            LegendController legendController) {
+                            LegendController legendController, PropertyFilterService propertyFilterService) {
         this.filterPanelView = filterPanelView;
         this.propertyAssessments = propertyAssessments;
         this.mapController = mapController;
         this.statisticsController = statisticsController;
         this.legendController = legendController;
+        this.propertyFilterService = propertyFilterService;
 
         setupFilterListeners();
     }
@@ -81,29 +84,17 @@ public class FilterController {
             return;
         }
 
-        List<PropertyAssessment> filteredProperties = propertyAssessments.getProperties().stream()
-                .filter(property -> matchesFilter(property, selectedFilter, filterValue))
-                .collect(Collectors.toList());
+        PropertyAssessments filteredAssessments = propertyFilterService.filterByCriteria(propertyAssessments, selectedFilter, filterValue);
 
-        if (filteredProperties.isEmpty()) {
+        if (filteredAssessments.getProperties().isEmpty()) {
             showAlert("No Results", "No properties match the selected filter.");
             statisticsController.updateStatistics(new PropertyAssessments(List.of()));
             legendController.updateLegend(new PropertyAssessments(List.of())); // Update empty legend
         } else {
-            PropertyAssessments filteredAssessments = new PropertyAssessments(filteredProperties);
             mapController.displayProperties(filteredAssessments);
             statisticsController.updateStatistics(filteredAssessments);
             legendController.updateLegend(filteredAssessments); // Update legend with filtered data
         }
-    }
-
-    private boolean matchesFilter(PropertyAssessment property, String selectedFilter, String filterValue) {
-        return switch (selectedFilter) {
-            case "Neighborhood" -> property.getNeighborhood().getNeighborhoodName().equals(filterValue);
-            case "Ward" -> property.getNeighborhood().getWard().equals(filterValue);
-            case "Assessment Class" -> property.getAssessmentClass().toString().contains(filterValue);
-            default -> false;
-        };
     }
 
     private void clearFilter() {
@@ -113,32 +104,9 @@ public class FilterController {
     }
 
     private void populateValues(String selectedFilter) {
+        List<String> values = propertyFilterService.getDistinctValues(propertyAssessments, selectedFilter);
         filterPanelView.getValueDropdown().getItems().clear();
-
-        switch (selectedFilter) {
-            case "Neighborhood" -> filterPanelView.getValueDropdown().getItems().addAll(
-                    propertyAssessments.getProperties().stream()
-                            .map(p -> p.getNeighborhood().getNeighborhoodName())
-                            .distinct()
-                            .sorted()
-                            .toList()
-            );
-            case "Ward" -> filterPanelView.getValueDropdown().getItems().addAll(
-                    propertyAssessments.getProperties().stream()
-                            .map(p -> p.getNeighborhood().getWard())
-                            .distinct()
-                            .sorted()
-                            .toList()
-            );
-            case "Assessment Class" -> filterPanelView.getValueDropdown().getItems().addAll(
-                    propertyAssessments.getProperties().stream()
-                            .map(p -> Arrays.asList(p.getAssessmentClass().getAssessmentClass1(), p.getAssessmentClass().getAssessmentClass2()))
-                            .flatMap(List::stream)
-                            .sorted()
-                            .distinct()
-                            .toList()
-            );
-        }
+        filterPanelView.getValueDropdown().getItems().addAll(values);
     }
 
     private void showAlert(String title, String message) {

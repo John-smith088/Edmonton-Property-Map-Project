@@ -23,6 +23,7 @@ import com.mycompany.app.controller.LegendController;
 import com.mycompany.app.controller.MapController;
 import com.mycompany.app.controller.StatisticsController;
 import com.mycompany.app.model.PropertyAssessments;
+import com.mycompany.app.service.PropertyFilterService;
 import com.mycompany.app.view.FilterPanelView;
 import com.mycompany.app.view.LegendView;
 import com.mycompany.app.view.MapViewManager;
@@ -36,6 +37,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class App extends Application {
     // Global variables for window dimensions that might need to change
@@ -84,11 +86,14 @@ public class App extends Application {
         // Load Property data
         loadPropertyData();
 
+        // Initialize services
+        PropertyFilterService propertyFilterService = new PropertyFilterService();
+
         // Initialize controllers
         mapController = new MapController(mapViewManager);
         statisticsController = new StatisticsController(statisticsView, propertyAssessments);
         legendController = new LegendController(legendView, propertyAssessments);
-        filterController = new FilterController(filterPanelView, propertyAssessments, mapController, statisticsController, legendController);
+        filterController = new FilterController(filterPanelView, propertyAssessments, mapController, statisticsController, legendController, propertyFilterService);
 
         // Use MapController to display all properties initially
         mapController.setAssessedValueCenter(propertyAssessments.getMedian());
@@ -97,8 +102,9 @@ public class App extends Application {
         // Add all components to the StackPane in the correct order
         setupStackPane();
 
-        // Create the scene, apply the styling and show it on the screen
+        // Create the scene and show it on the screen
         Scene scene = new Scene(rootStackPane);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
         stage.setScene(scene);
         stage.show();
 
