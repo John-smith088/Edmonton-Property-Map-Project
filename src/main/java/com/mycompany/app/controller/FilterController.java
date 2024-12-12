@@ -7,7 +7,6 @@ import com.mycompany.app.view.FilterPanelView;
 import javafx.scene.control.Alert;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FilterController {
     private final FilterPanelView filterPanelView;
@@ -40,7 +39,6 @@ public class FilterController {
 
         filterPanelView.getRemoveFilterButton().setOnAction(event -> clearFilter());
 
-        // Add listener for account search button
         filterPanelView.getAccountSearchButton().setOnAction(event -> searchByAccountNumber());
     }
 
@@ -61,13 +59,12 @@ public class FilterController {
 
             if (property == null) {
                 showAlert("No Results", "No property found with the given account number.");
-                statisticsController.displayPropertyInfo(null); // Clear property info
+                statisticsController.displayPropertyInfo(null);
             } else {
-                // Update map, statistics, and legend with the single property
                 mapController.highlightProperty(property);
                 legendController.updateLegend(new PropertyAssessments(List.of(property)));
                 statisticsController.displayNoStatistics();
-                statisticsController.displayPropertyInfo(property); // Display property info
+                statisticsController.displayPropertyInfo(property);
             }
         } catch (NumberFormatException e) {
             showAlert("Invalid Input", "Account number must be a valid number.");
@@ -78,8 +75,20 @@ public class FilterController {
         String selectedFilter = filterPanelView.getFilterDropdown().getValue();
         String filterValue = filterPanelView.getValueDropdown().getValue();
         String garageFilter = filterPanelView.getSelectedGarageFilter();
+        String priceInput = filterPanelView.getPriceInput();
+        String priceComparison = filterPanelView.getPriceComparison();
 
-        if ((selectedFilter == null || filterValue == null) && garageFilter == null) {
+        Long priceValue = null;
+        if (!priceInput.isEmpty()) {
+            try {
+                priceValue = Long.parseLong(priceInput);
+            } catch (NumberFormatException e) {
+                showAlert("Invalid Input", "Price must be a valid number.");
+                return;
+            }
+        }
+
+        if ((selectedFilter == null || filterValue == null) && garageFilter == null && (priceValue == null || priceComparison == null)) {
             showAlert("Invalid Filter", "Please select at least one filter.");
             return;
         }
@@ -94,21 +103,25 @@ public class FilterController {
             filteredAssessments = propertyFilterService.filterByGarage(filteredAssessments, garageFilter);
         }
 
+        if (priceValue != null && priceComparison != null) {
+            filteredAssessments = propertyFilterService.filterByPrice(filteredAssessments, priceComparison, priceValue);
+        }
+
         if (filteredAssessments.getProperties().isEmpty()) {
-            showAlert("No Results", "No properties match the selected filter.");
+            showAlert("No Results", "No properties match the selected filters.");
             statisticsController.updateStatistics(new PropertyAssessments(List.of()));
-            legendController.updateLegend(new PropertyAssessments(List.of())); // Update empty legend
+            legendController.updateLegend(new PropertyAssessments(List.of()));
         } else {
             mapController.displayProperties(filteredAssessments);
             statisticsController.updateStatistics(filteredAssessments);
-            legendController.updateLegend(filteredAssessments); // Update legend with filtered data
+            legendController.updateLegend(filteredAssessments);
         }
     }
 
     private void clearFilter() {
         mapController.displayProperties(propertyAssessments);
         statisticsController.updateStatistics(propertyAssessments);
-        legendController.updateLegend(propertyAssessments); // Reset legend to original data
+        legendController.updateLegend(propertyAssessments);
     }
 
     private void populateValues(String selectedFilter) {

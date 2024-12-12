@@ -84,4 +84,23 @@ public class PropertyFilterService {
 
         return new PropertyAssessments(filteredProperties);
     }
+
+    public PropertyAssessments filterByPrice(PropertyAssessments assessments, String comparison, Long price) {
+        if (price == null || comparison == null || comparison.isEmpty()) {
+            return assessments; // No filtering applied if inputs are invalid
+        }
+
+        List<PropertyAssessment> filteredProperties = assessments.getProperties().stream()
+                .filter(property -> {
+                    return switch (comparison) {
+                        case "Under" -> property.getAssessedValue() < price;
+                        case "Equal" -> property.getAssessedValue() == price;
+                        case "Above" -> property.getAssessedValue() > price;
+                        default -> true;
+                    };
+                })
+                .collect(Collectors.toList());
+
+        return new PropertyAssessments(filteredProperties);
+    }
 }

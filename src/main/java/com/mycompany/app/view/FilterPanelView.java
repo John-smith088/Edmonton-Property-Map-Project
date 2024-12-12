@@ -16,6 +16,8 @@ public class FilterPanelView {
     private final RadioButton allButton;
     private final RadioButton yesButton;
     private final RadioButton noButton;
+    private TextField priceInputField;
+    private ComboBox<String> priceComparisonDropdown;
 
 
     public FilterPanelView() {
@@ -76,6 +78,15 @@ public class FilterPanelView {
 
         allButton.setSelected(true); // Default selection
 
+        // Create the price filter input and dropdown
+        Label priceFilterLabel = new Label("Price Filter:");
+        priceInputField = new TextField();
+        priceInputField.setPromptText("Enter price (e.g., 100000)");
+
+        priceComparisonDropdown = new ComboBox<>();
+        priceComparisonDropdown.getItems().addAll("Under", "Equal", "Above");
+        priceComparisonDropdown.setPromptText("Select comparison");
+
         // Create content for filter pane
         VBox filterContent = new VBox(
                 10,
@@ -85,6 +96,9 @@ public class FilterPanelView {
                 allButton,
                 yesButton,
                 noButton,
+                priceFilterLabel,
+                priceInputField,
+                priceComparisonDropdown,
                 applyFilterButton,
                 removeFilterButton
         );
@@ -136,4 +150,9 @@ public class FilterPanelView {
     public Button getAccountSearchButton() {
         return accountSearchButton;
     }
+
+    public String getPriceInput() { return priceInputField.getText().trim(); }
+
+    public String getPriceComparison() { return priceComparisonDropdown.getValue(); }
+
 }
