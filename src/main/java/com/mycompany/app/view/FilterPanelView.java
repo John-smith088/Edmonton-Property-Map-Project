@@ -12,6 +12,11 @@ public class FilterPanelView {
     private final Button removeFilterButton;
     private final TextField accountSearchInput;
     private final Button accountSearchButton;
+    private final ToggleGroup garageFilterGroup;
+    private final RadioButton allButton;
+    private final RadioButton yesButton;
+    private final RadioButton noButton;
+
 
     public FilterPanelView() {
         // Initialize the UI components
@@ -22,6 +27,10 @@ public class FilterPanelView {
         removeFilterButton = new Button("Remove Filters");
         accountSearchInput = new TextField();
         accountSearchButton = new Button("Search");
+        garageFilterGroup = new ToggleGroup();
+        allButton = new RadioButton("All");
+        yesButton = new RadioButton("Yes");
+        noButton = new RadioButton("No");
 
         initializeFilterPanel();
     }
@@ -60,11 +69,22 @@ public class FilterPanelView {
         // Configure value dropdown
         valueDropdown.setPromptText("Select a value");
 
+        Label garageLabel = new Label("Garage Filter:");
+        allButton.setToggleGroup(garageFilterGroup);
+        yesButton.setToggleGroup(garageFilterGroup);
+        noButton.setToggleGroup(garageFilterGroup);
+
+        allButton.setSelected(true); // Default selection
+
         // Create content for filter pane
         VBox filterContent = new VBox(
                 10,
                 filterDropdown,
                 valueDropdown,
+                garageLabel,
+                allButton,
+                yesButton,
+                noButton,
                 applyFilterButton,
                 removeFilterButton
         );
@@ -79,6 +99,12 @@ public class FilterPanelView {
         VBox accountGroupContent = new VBox(10, accountSearchLabel, accountSearchInput, accountSearchButton);
 
         return new TitledPane("Search by Account Number", accountGroupContent);
+    }
+
+    public String getSelectedGarageFilter() {
+        if (yesButton.isSelected()) return "Y";
+        if (noButton.isSelected()) return "N";
+        return "All";
     }
 
     // Getter for the filter panel

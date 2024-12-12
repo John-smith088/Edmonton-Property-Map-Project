@@ -6,7 +6,6 @@ import com.mycompany.app.service.PropertyFilterService;
 import com.mycompany.app.view.FilterPanelView;
 import javafx.scene.control.Alert;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,13 +77,22 @@ public class FilterController {
     private void applyFilter() {
         String selectedFilter = filterPanelView.getFilterDropdown().getValue();
         String filterValue = filterPanelView.getValueDropdown().getValue();
+        String garageFilter = filterPanelView.getSelectedGarageFilter();
 
-        if (selectedFilter == null || filterValue == null) {
-            showAlert("Invalid Filter", "Please select a filter and value.");
+        if ((selectedFilter == null || filterValue == null) && garageFilter == null) {
+            showAlert("Invalid Filter", "Please select at least one filter.");
             return;
         }
 
-        PropertyAssessments filteredAssessments = propertyFilterService.filterByCriteria(propertyAssessments, selectedFilter, filterValue);
+        PropertyAssessments filteredAssessments = propertyAssessments;
+
+        if (selectedFilter != null && filterValue != null) {
+            filteredAssessments = propertyFilterService.filterByCriteria(filteredAssessments, selectedFilter, filterValue);
+        }
+
+        if (!"All".equals(garageFilter)) {
+            filteredAssessments = propertyFilterService.filterByGarage(filteredAssessments, garageFilter);
+        }
 
         if (filteredAssessments.getProperties().isEmpty()) {
             showAlert("No Results", "No properties match the selected filter.");

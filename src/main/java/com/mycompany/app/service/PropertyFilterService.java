@@ -26,6 +26,11 @@ public class PropertyFilterService {
         return new PropertyAssessments(filteredProperties);
     }
 
+    public PropertyAssessments filterWithAllCriteria(PropertyAssessments assessments, String filterType, String filterValue, String garageFilter) {
+        PropertyAssessments filteredByCriteria = filterByCriteria(assessments, filterType, filterValue);
+        return filterByGarage(filteredByCriteria, garageFilter);
+    }
+
     private boolean matchesFilter(PropertyAssessment property, String filterType, String filterValue) {
         return switch (filterType) {
             case "Neighborhood" -> property.getNeighborhood().getNeighborhoodName().equals(filterValue);
@@ -66,5 +71,17 @@ public class PropertyFilterService {
                     .toList();
             default -> List.of();
         };
+    }
+
+    public PropertyAssessments filterByGarage(PropertyAssessments assessments, String garageFilter) {
+        if (garageFilter.equals("All")) {
+            return assessments; // No filtering applied
+        }
+
+        List<PropertyAssessment> filteredProperties = assessments.getProperties().stream()
+                .filter(property -> garageFilter.equals(property.getGarage()))
+                .collect(Collectors.toList());
+
+        return new PropertyAssessments(filteredProperties);
     }
 }
