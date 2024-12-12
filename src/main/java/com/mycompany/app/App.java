@@ -93,6 +93,7 @@ public class App extends Application {
         mapController = new MapController(mapViewManager);
         statisticsController = new StatisticsController(statisticsView, propertyAssessments);
         legendController = new LegendController(legendView, propertyAssessments);
+        legendController.legendRecenterInputFieldFunctionality(mapController);
         filterController = new FilterController(filterPanelView, propertyAssessments, mapController, statisticsController, legendController, propertyFilterService);
 
         // Use MapController to display all properties initially

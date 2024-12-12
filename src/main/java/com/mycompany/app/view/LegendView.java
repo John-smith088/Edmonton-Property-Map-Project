@@ -15,12 +15,12 @@ import java.util.List;
 public class LegendView {
     private final VBox legendPanel;
     private final VBox legendContent;
-    private final TextField centerInputField;
+    private final TextField legendRecenterInputField;
 
     public LegendView() {
         legendPanel = new VBox(10);
         legendContent = new VBox(5);
-        centerInputField = new TextField();
+        legendRecenterInputField = new TextField();
 
         initializeLegendPanel();
     }
@@ -30,10 +30,10 @@ public class LegendView {
         Label legendLabel = new Label("Legend");
 
         // Configure the center input field
-        centerInputField.setPromptText("Enter new map center value");
+        legendRecenterInputField.setPromptText("Enter new map center value");
 
         // Set panel layout and style
-        legendPanel.getChildren().addAll(legendLabel, legendContent, centerInputField);
+        legendPanel.getChildren().addAll(legendLabel, legendContent, legendRecenterInputField);
         legendPanel.setPadding(new Insets(10));
         legendPanel.setAlignment(Pos.TOP_LEFT);
         legendPanel.setPrefWidth(300);
@@ -142,8 +142,8 @@ public class LegendView {
     }
 
     // Getter for the center input field
-    public TextField getCenterInputField() {
-        return centerInputField;
+    public TextField getLegendRecenterInputField() {
+        return legendRecenterInputField;
     }
 
     // Inner record class for legend items
