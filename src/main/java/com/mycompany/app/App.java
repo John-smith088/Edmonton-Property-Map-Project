@@ -109,8 +109,8 @@ public class App extends Application {
         toggleLegendButton = new Button("Hide Legend");
 
         // Initialize the toggle buttons
-        statisticsController.initializeToggleButton(toggleStatsButton, rootStackPane);
-        legendController.initializeToggleButton(toggleLegendButton, rootStackPane);
+        statisticsController.initializeToggleButton(toggleStatsButton);
+        legendController.initializeToggleButton(toggleLegendButton);
 
 
         // Add all components to the StackPane in the correct order

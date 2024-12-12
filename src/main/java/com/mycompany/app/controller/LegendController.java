@@ -76,7 +76,7 @@ public class LegendController {
         });
     }
 
-    public void initializeToggleButton(Button toggleButton, StackPane rootStackPane) {
+    public void initializeToggleButton(Button toggleButton) {
         toggleButton.setOnAction(event -> {
             if (legendView.getLegendPanel().isVisible()) {
                 legendView.getLegendPanel().setVisible(false);
