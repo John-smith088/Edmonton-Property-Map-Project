@@ -32,6 +32,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import java.io.IOException;
@@ -60,6 +61,9 @@ public class App extends Application {
     private LegendController legendController;
     private MapController mapController;
 
+    // Components
+    private Button toggleStatsButton;
+    private Button toggleLegendButton;
     private StackPane rootStackPane;
 
 
@@ -99,6 +103,15 @@ public class App extends Application {
         // Use MapController to display all properties initially
         mapController.setAssessedValueCenter(propertyAssessments.getMedian());
         mapController.displayProperties(propertyAssessments);
+
+        // Create the toggle buttons
+        toggleStatsButton = new Button("Hide Statistics");
+        toggleLegendButton = new Button("Hide Legend");
+
+        // Initialize the toggle buttons
+        statisticsController.initializeToggleButton(toggleStatsButton, rootStackPane);
+        legendController.initializeToggleButton(toggleLegendButton, rootStackPane);
+
 
         // Add all components to the StackPane in the correct order
         setupStackPane();
@@ -169,6 +182,14 @@ public class App extends Application {
         rootStackPane.getChildren().add(legendView.getLegendPanel());
         StackPane.setAlignment(legendView.getLegendPanel(), Pos.BOTTOM_LEFT);
         StackPane.setMargin(legendView.getLegendPanel(), new Insets(10));
+
+        rootStackPane.getChildren().add(toggleStatsButton);
+        StackPane.setAlignment(toggleStatsButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(toggleStatsButton, new Insets(10, 320, 0, 320));
+
+        rootStackPane.getChildren().add(toggleLegendButton);
+        StackPane.setAlignment(toggleLegendButton, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(toggleLegendButton, new Insets(10, 320, 20, 320));
     }
 
     @Override

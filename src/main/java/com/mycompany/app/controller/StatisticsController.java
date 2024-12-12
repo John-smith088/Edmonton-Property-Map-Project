@@ -3,6 +3,9 @@ package com.mycompany.app.controller;
 import com.mycompany.app.model.PropertyAssessment;
 import com.mycompany.app.model.PropertyAssessments;
 import com.mycompany.app.view.StatisticsView;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.layout.StackPane;
 
 import java.text.NumberFormat;
 
@@ -59,5 +62,19 @@ public class StatisticsController {
 
     public void displayNoStatistics() {
         statisticsView.displayNoStatistics();
+    }
+
+    public void initializeToggleButton(Button toggleButton, StackPane rootStackPane) {
+        toggleButton.setOnAction(event -> {
+            if (statisticsView.getStatisticsPanel().isVisible()) {
+                statisticsView.getStatisticsPanel().setVisible(false);
+                StackPane.setMargin(toggleButton, new Insets(10));
+                toggleButton.setText("Show Statistics");
+            } else {
+                statisticsView.getStatisticsPanel().setVisible(true);
+                StackPane.setMargin(toggleButton, new Insets(10, 320, 0, 320));
+                toggleButton.setText("Hide Statistics");
+            }
+        });
     }
 }

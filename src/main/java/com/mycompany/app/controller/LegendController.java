@@ -3,11 +3,14 @@ package com.mycompany.app.controller;
 import com.mycompany.app.view.LegendView;
 import com.mycompany.app.model.PropertyAssessments;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.StackPane;
 
 import java.text.NumberFormat;
 
@@ -69,6 +72,20 @@ public class LegendController {
                         mapController.displayProperties(propertyAssessments);
                     }
                 }
+            }
+        });
+    }
+
+    public void initializeToggleButton(Button toggleButton, StackPane rootStackPane) {
+        toggleButton.setOnAction(event -> {
+            if (legendView.getLegendPanel().isVisible()) {
+                legendView.getLegendPanel().setVisible(false);
+                StackPane.setMargin(toggleButton, new Insets(10));
+                toggleButton.setText("Show Legend");
+            } else {
+                legendView.getLegendPanel().setVisible(true);
+                StackPane.setMargin(toggleButton, new Insets(10, 320, 20, 320));
+                toggleButton.setText("Hide Legend");
             }
         });
     }
