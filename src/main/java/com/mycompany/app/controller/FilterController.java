@@ -5,6 +5,8 @@ import com.mycompany.app.model.PropertyAssessments;
 import com.mycompany.app.service.PropertyFilterService;
 import com.mycompany.app.util.AlertUtil;
 import com.mycompany.app.view.FilterPanelView;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 
 import java.util.List;
 
@@ -72,49 +74,80 @@ public class FilterController {
     }
 
     private void applyFilter() {
-        String selectedFilter = filterPanelView.getFilterDropdown().getValue();
-        String filterValue = filterPanelView.getValueDropdown().getValue();
-        String garageFilter = filterPanelView.getSelectedGarageFilter();
-        String priceInput = filterPanelView.getPriceInput();
-        String priceComparison = filterPanelView.getPriceComparison();
+        // Create a Task for the filter process
+        Task<PropertyAssessments> filterTask = new Task<>() {
+            @Override
+            protected PropertyAssessments call() throws Exception {
+                // Retrieve filter parameters
+                String selectedFilter = filterPanelView.getFilterDropdown().getValue();
+                String filterValue = filterPanelView.getValueDropdown().getValue();
+                String garageFilter = filterPanelView.getSelectedGarageFilter();
+                String priceInput = filterPanelView.getPriceInput();
+                String priceComparison = filterPanelView.getPriceComparison();
 
-        Long priceValue = null;
-        if (!priceInput.isEmpty()) {
-            try {
-                priceValue = Long.parseLong(priceInput);
-            } catch (NumberFormatException e) {
-                AlertUtil.showErrorAlert("Invalid Input", "Price must be a valid number.");
+                Long priceValue = null;
+                if (!priceInput.isEmpty()) {
+                    try {
+                        priceValue = Long.parseLong(priceInput);
+                    } catch (NumberFormatException e) {
+                        Platform.runLater(() ->
+                                AlertUtil.showErrorAlert("Invalid Input", "Price must be a valid number.")
+                        );
+                        return null;
+                    }
+                }
+
+                if ((selectedFilter == null || filterValue == null) && garageFilter == null && (priceValue == null || priceComparison == null)) {
+                    Platform.runLater(() ->
+                            AlertUtil.showWarningAlert("Invalid Filter", "Please select at least one filter.")
+                    );
+                    return null;
+                }
+
+                // Perform filtering in the background thread
+                PropertyAssessments filteredAssessments = propertyAssessments;
+
+                if (selectedFilter != null && filterValue != null) {
+                    filteredAssessments = propertyFilterService.filterByCriteria(filteredAssessments, selectedFilter, filterValue);
+                }
+
+                if (!"All".equals(garageFilter)) {
+                    filteredAssessments = propertyFilterService.filterByGarage(filteredAssessments, garageFilter);
+                }
+
+                if (priceValue != null && priceComparison != null) {
+                    filteredAssessments = propertyFilterService.filterByPrice(filteredAssessments, priceComparison, priceValue);
+                }
+
+                return filteredAssessments;
             }
-        }
+        };
 
-        if ((selectedFilter == null || filterValue == null) && garageFilter == null && (priceValue == null || priceComparison == null)) {
-            AlertUtil.showWarningAlert("Invalid Filter", "Please select at least one filter.");
-            return;
-        }
+        // Update the UI upon task completion
+        filterTask.setOnSucceeded(event -> {
+            PropertyAssessments filteredAssessments = filterTask.getValue();
+            if (filteredAssessments == null || filteredAssessments.getProperties().isEmpty()) {
+                AlertUtil.showInformationAlert("No Results", "No properties match the selected filters.");
+                statisticsController.updateStatistics(new PropertyAssessments(List.of()));
+                legendController.updateLegend(new PropertyAssessments(List.of()));
+            } else {
+                mapController.displayProperties(filteredAssessments);
+                statisticsController.updateStatistics(filteredAssessments);
+                legendController.updateLegend(filteredAssessments);
+            }
+        });
 
-        PropertyAssessments filteredAssessments = propertyAssessments;
+        // Handle errors in the background task
+        filterTask.setOnFailed(event -> {
+            Throwable exception = filterTask.getException();
+            if (exception != null) {
+                exception.printStackTrace();
+                AlertUtil.showErrorAlert("Error", "An error occurred while applying the filter.");
+            }
+        });
 
-        if (selectedFilter != null && filterValue != null) {
-            filteredAssessments = propertyFilterService.filterByCriteria(filteredAssessments, selectedFilter, filterValue);
-        }
-
-        if (!"All".equals(garageFilter)) {
-            filteredAssessments = propertyFilterService.filterByGarage(filteredAssessments, garageFilter);
-        }
-
-        if (priceValue != null && priceComparison != null) {
-            filteredAssessments = propertyFilterService.filterByPrice(filteredAssessments, priceComparison, priceValue);
-        }
-
-        if (filteredAssessments.getProperties().isEmpty()) {
-            AlertUtil.showInformationAlert("No Results", "No properties match the selected filters.");
-            statisticsController.updateStatistics(new PropertyAssessments(List.of()));
-            legendController.updateLegend(new PropertyAssessments(List.of()));
-        } else {
-            mapController.displayProperties(filteredAssessments);
-            statisticsController.updateStatistics(filteredAssessments);
-            legendController.updateLegend(filteredAssessments);
-        }
+        // Run the task in a background thread
+        new Thread(filterTask).start();
     }
 
     private void clearFilter() {

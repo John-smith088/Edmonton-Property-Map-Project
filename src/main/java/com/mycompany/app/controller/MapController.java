@@ -4,13 +4,21 @@ import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
+import com.mycompany.app.util.LoadingUtil;
 import com.mycompany.app.view.MapViewManager;
 import com.mycompany.app.model.PropertyAssessment;
 import com.mycompany.app.model.PropertyAssessments;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class MapController {
     private final MapViewManager mapViewManager;
@@ -35,27 +43,72 @@ public class MapController {
      * @param assessments The collection of property assessments to display.
      */
     public void displayProperties(PropertyAssessments assessments) {
-        clearGraphics(); // Clear existing markers
+        Task<List<Graphic>> task = new Task<>() {
+            @Override
+            protected List<Graphic> call() throws Exception {
+                List<PropertyAssessment> properties = assessments.getProperties();
+                int totalProperties = properties.size();
+                final int[] processedCount = {0};
 
-        List<Graphic> graphics = assessments.getProperties().parallelStream()
-                .map(property -> {
-                    // Generate color and symbol
-                    Color color = determineColor(property.getAssessedValue());
-                    SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, color, 15);
+                // Use a dedicated thread pool for parallel processing
+                ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+                try {
+                    return properties.stream()
+                            .map(property -> executorService.submit(() -> {
+                                if (isCancelled()) {
+                                    throw new InterruptedException("Task was cancelled");
+                                }
+                                // Generate color and symbol
+                                Color color = determineColor(property.getAssessedValue());
+                                SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, color, 15);
 
-                    // Create the graphic
-                    Point point = new Point(property.getLocation().getLng(), property.getLocation().getLat(), SpatialReferences.getWgs84());
-                    Graphic graphic = new Graphic(point, symbol);
+                                // Create the graphic
+                                Point point = new Point(property.getLocation().getLng(), property.getLocation().getLat(), SpatialReferences.getWgs84());
+                                Graphic graphic = new Graphic(point, symbol);
 
-                    // Add attributes to the graphic
-                    graphic.getAttributes().put("accountID", property.getAccountID());
+                                // Add attributes to the graphic
+                                graphic.getAttributes().put("accountID", property.getAccountID());
 
-                    return graphic;
-                })
-                .toList();
+                                // Update progress safely on the UI thread
+                                Platform.runLater(() -> updateProgress(++processedCount[0], totalProperties));
 
-        mapViewManager.getGraphicsOverlay().getGraphics().addAll(graphics);
+                                return graphic;
+                            }))
+                            .map(future -> {
+                                try {
+                                    return future.get();
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                            .collect(Collectors.toCollection(ArrayList::new));
+                } finally {
+                    executorService.shutdown();
+                }
+            }
+        };
+
+        // Loading UI
+        VBox loadingContainer = LoadingUtil.createLoadingContainer("Loading Properties...", task);
+        Platform.runLater(() -> ((StackPane) mapViewManager.getMapView().getScene().getRoot()).getChildren().add(loadingContainer));
+
+        // Task handlers
+        task.setOnSucceeded(e -> {
+            List<Graphic> graphics = task.getValue();
+            mapViewManager.getGraphicsOverlay().getGraphics().clear();
+            mapViewManager.getGraphicsOverlay().getGraphics().addAll(graphics);
+            Platform.runLater(() -> ((StackPane) mapViewManager.getMapView().getScene().getRoot()).getChildren().remove(loadingContainer));
+        });
+
+        task.setOnFailed(e -> {
+            Platform.runLater(() -> ((StackPane) mapViewManager.getMapView().getScene().getRoot()).getChildren().remove(loadingContainer));
+            e.getSource().getException().printStackTrace();
+        });
+
+        // Start the task
+        new Thread(task).start();
     }
+
 
     /**
      * Clears all graphics from the map.
