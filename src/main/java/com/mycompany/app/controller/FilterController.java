@@ -154,6 +154,14 @@ public class FilterController {
         mapController.displayProperties(propertyAssessments);
         statisticsController.updateStatistics(propertyAssessments);
         legendController.updateLegend(propertyAssessments);
+
+        // Clear each filter component
+        filterPanelView.getFilterDropdown().getSelectionModel().clearSelection();
+        filterPanelView.getValueDropdown().getSelectionModel().clearSelection();
+        filterPanelView.getPriceInputField().clear();
+        filterPanelView.getAccountSearchInput().clear();
+        filterPanelView.getAllButton().setSelected(true);
+        filterPanelView.getComparisonDropdown().getSelectionModel().clearSelection();
     }
 
     private void populateValues(String selectedFilter) {
