@@ -74,6 +74,17 @@ public class App extends Application {
         createAndShowScene(stage);
     }
 
+    public static String readApiKey(String fileName) {
+        try {
+            Path filePath = Path.of(fileName);
+            System.out.println("Looking for API key file at: " + filePath.toAbsolutePath());
+            return Files.readString(filePath).trim();
+        } catch (IOException e) {
+            System.err.println("Error reading the API key: " + e.getMessage());
+            return null;
+        }
+    }
+
     private void initializeArcGISRuntime() {
         // Set API key for ArcGIS
         // Please paste your key into a file named secret.txt
