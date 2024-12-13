@@ -1,12 +1,11 @@
 package com.mycompany.app.controller;
 
+import com.mycompany.app.util.AlertUtil;
 import com.mycompany.app.view.LegendView;
 import com.mycompany.app.model.PropertyAssessments;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -62,8 +61,7 @@ public class LegendController {
                             mapController.setAssessedValueCenter(newLegendRecenterValue);
                             mapController.displayProperties(propertyAssessments);
                         } catch (NumberFormatException e) {
-                            Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid price value. Please enter a valid number.", ButtonType.OK);
-                            alert.showAndWait();
+                            AlertUtil.showErrorAlert("Invalid price value", "Please enter a valid number.");
                         }
                     } else {
                         newLegendRecenterValue = propertyMedian;

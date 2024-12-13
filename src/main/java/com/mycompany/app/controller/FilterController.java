@@ -3,8 +3,8 @@ package com.mycompany.app.controller;
 import com.mycompany.app.model.PropertyAssessment;
 import com.mycompany.app.model.PropertyAssessments;
 import com.mycompany.app.service.PropertyFilterService;
+import com.mycompany.app.util.AlertUtil;
 import com.mycompany.app.view.FilterPanelView;
-import javafx.scene.control.Alert;
 
 import java.util.List;
 
@@ -46,7 +46,7 @@ public class FilterController {
         String accountNumberStr = filterPanelView.getAccountSearchInput().getText().trim();
 
         if (accountNumberStr.isEmpty()) {
-            showAlert("Invalid Input", "Please enter an account number.");
+            AlertUtil.showWarningAlert("Invalid Input", "Please enter an account number.");
             return;
         }
 
@@ -58,7 +58,7 @@ public class FilterController {
                     .orElse(null);
 
             if (property == null) {
-                showAlert("No Results", "No property found with the given account number.");
+                AlertUtil.showInformationAlert("No Results", "No property found with the given account number.");
                 statisticsController.displayPropertyInfo(null);
             } else {
                 mapController.highlightProperty(property);
@@ -67,7 +67,7 @@ public class FilterController {
                 statisticsController.displayPropertyInfo(property);
             }
         } catch (NumberFormatException e) {
-            showAlert("Invalid Input", "Account number must be a valid number.");
+            AlertUtil.showErrorAlert("Invalid Input", "Account number must be a valid number.");
         }
     }
 
@@ -83,13 +83,12 @@ public class FilterController {
             try {
                 priceValue = Long.parseLong(priceInput);
             } catch (NumberFormatException e) {
-                showAlert("Invalid Input", "Price must be a valid number.");
-                return;
+                AlertUtil.showErrorAlert("Invalid Input", "Price must be a valid number.");
             }
         }
 
         if ((selectedFilter == null || filterValue == null) && garageFilter == null && (priceValue == null || priceComparison == null)) {
-            showAlert("Invalid Filter", "Please select at least one filter.");
+            AlertUtil.showWarningAlert("Invalid Filter", "Please select at least one filter.");
             return;
         }
 
@@ -108,7 +107,7 @@ public class FilterController {
         }
 
         if (filteredAssessments.getProperties().isEmpty()) {
-            showAlert("No Results", "No properties match the selected filters.");
+            AlertUtil.showInformationAlert("No Results", "No properties match the selected filters.");
             statisticsController.updateStatistics(new PropertyAssessments(List.of()));
             legendController.updateLegend(new PropertyAssessments(List.of()));
         } else {
@@ -128,13 +127,5 @@ public class FilterController {
         List<String> values = propertyFilterService.getDistinctValues(propertyAssessments, selectedFilter);
         filterPanelView.getValueDropdown().getItems().clear();
         filterPanelView.getValueDropdown().getItems().addAll(values);
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 }
