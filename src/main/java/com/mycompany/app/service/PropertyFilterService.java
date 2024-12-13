@@ -48,6 +48,10 @@ public class PropertyFilterService {
      * @return A sorted list of distinct values for the specified filter type.
      */
     public List<String> getDistinctValues(PropertyAssessments assessments, String filterType) {
+        if (filterType == null || filterType.isEmpty()) {
+            return List.of(); // Return an empty list for invalid filter type
+        }
+
         return switch (filterType) {
             case "Neighborhood" -> assessments.getProperties().stream()
                     .map(p -> p.getNeighborhood().getNeighborhoodName())
@@ -69,7 +73,7 @@ public class PropertyFilterService {
                     .distinct()
                     .sorted()
                     .toList();
-            default -> List.of();
+            default -> List.of(); // Handle unknown filter types
         };
     }
 

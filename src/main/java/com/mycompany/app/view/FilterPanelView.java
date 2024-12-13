@@ -153,6 +153,12 @@ public class FilterPanelView {
 
     public String getPriceInput() { return priceInputField.getText().trim(); }
 
+    public TextField getPriceInputField() { return priceInputField; }
+
     public String getPriceComparison() { return priceComparisonDropdown.getValue(); }
+
+    public RadioButton getAllButton() { return allButton; }
+
+    public ComboBox<String> getComparisonDropdown() { return priceComparisonDropdown; }
 
 }
