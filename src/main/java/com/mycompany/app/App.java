@@ -24,6 +24,7 @@ import com.mycompany.app.controller.MapController;
 import com.mycompany.app.controller.StatisticsController;
 import com.mycompany.app.model.PropertyAssessments;
 import com.mycompany.app.service.PropertyFilterService;
+import com.mycompany.app.util.AppConstants;
 import com.mycompany.app.view.FilterPanelView;
 import com.mycompany.app.view.LegendView;
 import com.mycompany.app.view.MapViewManager;
@@ -41,13 +42,6 @@ import java.nio.file.Path;
 import java.util.Objects;
 
 public class App extends Application {
-    // Global variables for window dimensions that might need to change
-    private final Integer initialScreenWidth = 1000;
-    private final Integer initialScreenHeight = 800;
-    private final Integer minScreenWidth = 800;
-    private final Integer minScreenHeight = 600;
-
-    // Instance Variables
     private MapViewManager mapViewManager;
     private MapView mapView;
     private FilterPanelView filterPanelView;
@@ -55,13 +49,11 @@ public class App extends Application {
     private LegendView legendView;
     private PropertyAssessments propertyAssessments;
 
-    // Controllers
     private FilterController filterController;
     private StatisticsController statisticsController;
     private LegendController legendController;
     private MapController mapController;
 
-    // Components
     private Button toggleStatsButton;
     private Button toggleLegendButton;
     private StackPane rootStackPane;
@@ -74,22 +66,63 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         initializeArcGISRuntime();
-
         initializeStage(stage);
+        initializeViews();
+        loadPropertyData();
+        initializeServicesandControllers();
+        setupStackPane();
+        createAndShowScene(stage);
+    }
 
-        // Create a StackPane as the root layout
+    private void initializeArcGISRuntime() {
+        // Set API key for ArcGIS
+        // Please paste your key into a file named secret.txt
+        String yourApiKey = readApiKey("secret.txt");
+        System.out.println(yourApiKey);
+        ArcGISRuntimeEnvironment.setApiKey(yourApiKey);
+    }
+
+    public static String readApiKey(String fileName) {
+        try {
+            Path filePath = Path.of(fileName);
+            System.out.println("Looking for API key file at: " + filePath.toAbsolutePath());
+            return Files.readString(filePath).trim();
+        } catch (IOException e) {
+            System.err.println("Error reading the API key: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void initializeStage(Stage stage) {
+        // Set the title and size of the stage and show it
+        stage.setTitle("Edmonton Properties Map");
+        stage.setWidth(AppConstants.INITIAL_SCREEN_WIDTH);
+        stage.setHeight(AppConstants.INITIAL_SCREEN_HEIGHT);
+        stage.setMinWidth(AppConstants.MIN_SCREEN_WIDTH);
+        stage.setMinHeight(AppConstants.MIN_SCREEN_HEIGHT);
+    }
+
+    private void initializeViews() {
         rootStackPane = new StackPane();
-
-        // Initialize views
         mapViewManager = new MapViewManager();
         mapView = mapViewManager.getMapView();
         filterPanelView = new FilterPanelView();
         statisticsView = new StatisticsView();
         legendView = new LegendView();
+    }
 
-        // Load Property data
-        loadPropertyData();
+    private void loadPropertyData() {
+        // Load property data
+        try {
+            propertyAssessments = new PropertyAssessments("Property_Assessment_Data_2024.csv");
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+            // Exit if data loading fails
+        }
+    }
 
+    private void initializeServicesandControllers() {
         // Initialize services
         PropertyFilterService propertyFilterService = new PropertyFilterService();
 
@@ -104,6 +137,11 @@ public class App extends Application {
         mapController.setAssessedValueCenter(propertyAssessments.getMedian());
         mapController.displayProperties(propertyAssessments);
 
+        // Initialize the toggle buttons
+        initializeToggleButtons();
+    }
+
+    private void initializeToggleButtons() {
         // Create the toggle buttons
         toggleStatsButton = new Button("Hide Statistics");
         toggleLegendButton = new Button("Hide Legend");
@@ -111,56 +149,6 @@ public class App extends Application {
         // Initialize the toggle buttons
         statisticsController.initializeToggleButton(toggleStatsButton);
         legendController.initializeToggleButton(toggleLegendButton);
-
-
-        // Add all components to the StackPane in the correct order
-        setupStackPane();
-
-        // Create the scene and show it on the screen
-        Scene scene = new Scene(rootStackPane);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
-        stage.setScene(scene);
-        stage.show();
-
-    }
-
-    public static String readApiKey(String fileName) {
-        try {
-            Path filePath = Path.of(fileName);
-            System.out.println("Looking for API key file at: " + filePath.toAbsolutePath());
-            return Files.readString(filePath).trim();
-        } catch (IOException e) {
-            System.err.println("Error reading the API key: " + e.getMessage());
-            return null;
-        }
-    }
-
-    private void initializeArcGISRuntime() {
-        // Set API key for ArcGIS
-        // Please paste your key into a file named secret.txt
-        String yourApiKey = readApiKey("secret.txt");
-        System.out.println(yourApiKey);
-        ArcGISRuntimeEnvironment.setApiKey(yourApiKey);
-    }
-
-    private void initializeStage(Stage stage) {
-        // Set the title and size of the stage and show it
-        stage.setTitle("Edmonton Properties Map");
-        stage.setWidth(initialScreenWidth);
-        stage.setHeight(initialScreenHeight);
-        stage.setMinWidth(minScreenWidth);
-        stage.setMinHeight(minScreenHeight);
-    }
-
-    private void loadPropertyData() {
-        // Load property data
-        try {
-            propertyAssessments = new PropertyAssessments("Property_Assessment_Data_2024.csv");
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-            // Exit if data loading fails
-        }
     }
 
     private void setupStackPane() {
@@ -190,6 +178,14 @@ public class App extends Application {
         rootStackPane.getChildren().add(toggleLegendButton);
         StackPane.setAlignment(toggleLegendButton, Pos.BOTTOM_LEFT);
         StackPane.setMargin(toggleLegendButton, new Insets(10, 320, 20, 320));
+    }
+
+    private void createAndShowScene(Stage stage) {
+        // Create the scene and show it on the screen
+        Scene scene = new Scene(rootStackPane);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles.css")).toExternalForm());
+        stage.setScene(scene);
+        stage.show();
     }
 
     @Override
