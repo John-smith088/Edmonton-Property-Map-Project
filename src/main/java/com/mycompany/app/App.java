@@ -127,7 +127,7 @@ public class App extends Application {
         PropertyFilterService propertyFilterService = new PropertyFilterService();
 
         // Initialize controllers
-        mapController = new MapController(mapViewManager);
+        mapController = new MapController(mapViewManager, propertyAssessments, statisticsView);
         statisticsController = new StatisticsController(statisticsView, propertyAssessments);
         legendController = new LegendController(legendView, propertyAssessments);
         legendController.legendRecenterInputFieldFunctionality(mapController);
@@ -136,6 +136,9 @@ public class App extends Application {
         // Use MapController to display all properties initially
         mapController.setAssessedValueCenter(propertyAssessments.getMedian());
         mapController.displayProperties(propertyAssessments);
+
+        // Set up the map click handler
+        mapController.setupMapClickHandler();
 
         // Initialize the toggle buttons
         initializeToggleButtons();

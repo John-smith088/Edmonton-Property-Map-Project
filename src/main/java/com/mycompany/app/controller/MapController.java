@@ -1,15 +1,20 @@
 package com.mycompany.app.controller;
 
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.IdentifyGraphicsOverlayResult;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
+import com.mycompany.app.util.AlertUtil;
 import com.mycompany.app.util.LoadingUtil;
 import com.mycompany.app.view.MapViewManager;
 import com.mycompany.app.model.PropertyAssessment;
 import com.mycompany.app.model.PropertyAssessments;
+import com.mycompany.app.view.StatisticsView;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.geometry.Point2D;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -23,9 +28,13 @@ import java.util.stream.Collectors;
 public class MapController {
     private final MapViewManager mapViewManager;
     private long assessedValueCenter;
+    private PropertyAssessments propertyAssessments;
+    private StatisticsView statisticsView;
 
-    public MapController(MapViewManager mapViewManager) {
+    public MapController(MapViewManager mapViewManager, PropertyAssessments propertyAssessments, StatisticsView statisticsView) {
         this.mapViewManager = mapViewManager;
+        this.propertyAssessments = propertyAssessments;
+        this.statisticsView = statisticsView;
     }
 
     /**
@@ -161,5 +170,59 @@ public class MapController {
 
         mapViewManager.getGraphicsOverlay().getGraphics().add(highlightGraphic);
         mapViewManager.getMapView().setViewpointCenterAsync(propertyPoint, 3000); // Center map on the property
+    }
+
+    public void setupMapClickHandler() {
+        mapViewManager.getMapView().setOnMouseClicked(event -> {
+            if (event.isStillSincePress()) { // Ensure it's a click and not a drag
+                Point2D screenPoint = new Point2D(event.getX(), event.getY()); // Get screen coordinates of the click
+
+                // Perform a hit test on the graphics overlay
+                ListenableFuture<IdentifyGraphicsOverlayResult> future = mapViewManager.getMapView()
+                        .identifyGraphicsOverlayAsync(mapViewManager.getGraphicsOverlay(), screenPoint, 10, false, 1);
+
+                future.addDoneListener(() -> {
+                    try {
+                        IdentifyGraphicsOverlayResult result = future.get();
+
+                        // Retrieve the first identified graphic
+                        if (!result.getGraphics().isEmpty()) {
+                            Graphic clickedGraphic = result.getGraphics().get(0);
+
+                            // Extract the accountID from the graphic attributes
+                            Integer accountID = (Integer) clickedGraphic.getAttributes().get("accountID");
+
+                            if (accountID != null) {
+                                // Find the associated property
+                                PropertyAssessment property = propertyAssessments.getProperties().stream()
+                                        .filter(p -> p.getAccountID() == accountID)
+                                        .findFirst()
+                                        .orElse(null);
+
+                                // Highlight the property on the map
+                                highlightProperty(property);
+
+                                // Display property details using the instance of StatisticsView
+                                if (property != null) {
+                                    statisticsView.displayPropertyDetails(
+                                            property.getAccountID(),
+                                            property.getAddress().toString(),
+                                            property.getAssessedValue(),
+                                            property.getNeighborhood().getNeighborhoodName(),
+                                            property.getNeighborhood().getWard(),
+                                            property.getLocation().getLat(),
+                                            property.getLocation().getLng()
+                                    );
+                                } else {
+                                    AlertUtil.showInformationAlert("No Property Found", "No property data available for the selected point.");
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+        });
     }
 }
