@@ -36,20 +36,24 @@ public class MapController {
      */
     public void displayProperties(PropertyAssessments assessments) {
         clearGraphics(); // Clear existing markers
-        List<Graphic> graphics = new ArrayList<>();
-        for (PropertyAssessment property : assessments.getProperties()) {
-            // Generate color and symbol
-            Color color = determineColor(property.getAssessedValue());
-            SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, color, 15);
 
-            // Create the graphic
-            Point point = new Point(property.getLocation().getLng(), property.getLocation().getLat(), SpatialReferences.getWgs84());
-            Graphic graphic = new Graphic(point, symbol);
+        List<Graphic> graphics = assessments.getProperties().parallelStream()
+                .map(property -> {
+                    // Generate color and symbol
+                    Color color = determineColor(property.getAssessedValue());
+                    SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, color, 15);
 
-            graphic.getAttributes().put("accountID", property.getAccountID());
+                    // Create the graphic
+                    Point point = new Point(property.getLocation().getLng(), property.getLocation().getLat(), SpatialReferences.getWgs84());
+                    Graphic graphic = new Graphic(point, symbol);
 
-            graphics.add(graphic);
-        }
+                    // Add attributes to the graphic
+                    graphic.getAttributes().put("accountID", property.getAccountID());
+
+                    return graphic;
+                })
+                .toList();
+
         mapViewManager.getGraphicsOverlay().getGraphics().addAll(graphics);
     }
 
