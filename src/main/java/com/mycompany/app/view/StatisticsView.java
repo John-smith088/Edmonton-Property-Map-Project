@@ -1,5 +1,6 @@
 package com.mycompany.app.view;
 
+import com.mycompany.app.util.AlertUtil;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -11,7 +12,6 @@ public class StatisticsView {
     private final VBox statisticsPanel;
     private final TextArea propertyStatisticsArea;
     private final TextArea propertyInfoArea;
-    private final PieChart classesPieChart;
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance();
     private static final NumberFormat INTEGER_FORMAT = NumberFormat.getIntegerInstance();
 
@@ -19,8 +19,7 @@ public class StatisticsView {
         // Initialize the UI components
         statisticsPanel = new VBox(10);
         propertyStatisticsArea = new TextArea();
-        propertyInfoArea = new TextArea();
-        classesPieChart = new PieChart();
+        propertyInfoArea = new TextArea();;
 
         initializeStatisticsPanel();
     }
@@ -39,15 +38,8 @@ public class StatisticsView {
         propertyStatisticsArea.setWrapText(true);
         propertyStatisticsArea.setPromptText("Property Group Statistics");
 
-        // Configure the pie chart
-        classesPieChart.setVisible(false);
-        classesPieChart.setManaged(false);
-        classesPieChart.setLegendVisible(false);
-        classesPieChart.setMinHeight(0);
-        classesPieChart.setMinWidth(0);
-
         // Add components to the panel
-        statisticsPanel.getChildren().addAll(statisticsLabel, propertyInfoArea, classesPieChart, propertyStatisticsArea);
+        statisticsPanel.getChildren().addAll(statisticsLabel, propertyInfoArea, propertyStatisticsArea);
         statisticsPanel.setMaxHeight(Region.USE_PREF_SIZE);
         statisticsPanel.setPrefHeight(Region.USE_COMPUTED_SIZE);
         statisticsPanel.setMaxWidth(Region.USE_PREF_SIZE);
@@ -56,7 +48,6 @@ public class StatisticsView {
         statisticsPanel.setMaxWidth(300);
         statisticsLabel.getStyleClass().add("statistics-label");
         statisticsPanel.getStyleClass().add("statistics-panel");
-        classesPieChart.getStyleClass().add("pie-chart");
     }
 
     public void updateStatistics(int numberOfRecords, long minValue, long maxValue, long range, double mean, long median) {
@@ -76,6 +67,26 @@ public class StatisticsView {
         ));
     }
 
+    public void displayPropertyDetails(int accountID, String address, long assessedValue, String neighborhood, String ward, double latitude, double longitude) {
+        propertyInfoArea.setText(String.format(
+                "Account Number: %d%n" +
+                        "Address: %s%n" +
+                        "Assessed Value: %s%n" +
+                        "Neighborhood: %s%n" +
+                        "Ward: %s%n" +
+                        "Latitude: %.6f%n" +
+                        "Longitude: %.6f",
+                accountID,
+                address,
+                CURRENCY_FORMAT.format(assessedValue),
+                neighborhood,
+                ward,
+                latitude,
+                longitude
+        ));
+    }
+
+
     public void displayNoStatistics() {
         propertyStatisticsArea.setText("No statistics available for the selected filters.");
     }
@@ -87,17 +98,4 @@ public class StatisticsView {
 
     // Getter for the property info area
     public TextArea getPropertyInfoArea() {return propertyInfoArea;}
-
-    public void updatePieChart(PieChart.Data... data) {
-        classesPieChart.getData().clear();
-        if (data.length > 0) {
-            classesPieChart.getData().addAll(data);
-            classesPieChart.setVisible(true);
-            classesPieChart.setManaged(true);
-            classesPieChart.setMinHeight(200);
-        } else {
-            classesPieChart.setVisible(false);
-            classesPieChart.setManaged(false);
-        }
-    }
 }
